@@ -22,11 +22,6 @@ function Show-EnvHelp {
 # ==========================================
 Write-Host "1. 正在定位..." -ForegroundColor Cyan
 
-# 检查必要的环境变量
-if (-not $env:IPINFO_AUTH) {
-    Show-EnvHelp -EnvName "IPINFO_AUTH" -ServiceName "ipinfo.io"
-    exit
-}
 if (-not $env:DASHSCOPE_API_KEY) {
     Show-EnvHelp -EnvName "DASHSCOPE_API_KEY" -ServiceName "阿里云 DashScope"
     exit
@@ -35,7 +30,7 @@ if (-not $env:DASHSCOPE_API_KEY) {
 # 使用 ipinfo.io 接口获取详细位置
 try {
     $url = "https://ipinfo.io/json"
-    $locationData = Invoke-RestMethod -Uri $url -Headers @{ "Authorization" = $env:IPINFO_AUTH } -ErrorAction Stop
+    $locationData = Invoke-RestMethod -Uri $url -ErrorAction Stop
     
     $loc = $locationData.loc
     $city = $locationData.city
@@ -74,7 +69,8 @@ try {
 
     $current = $weatherResponse.current
     $temp = $current.temperature_2m
-    $weatherCode = $current.weather_code
+    # 强制转换为 [int] 类型，解决强类型匹配失败的问题
+    $weatherCode = [int]$current.weather_code
 
     $weatherMap = @{
         0 = "晴朗无云"; 1 = "主要晴朗"; 2 = "部分多云"; 3 = "阴天"

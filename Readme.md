@@ -29,13 +29,12 @@ Linux 和 macOS 脚本依赖 `jq` 工具来解析 API 返回的数据。请在�
 ## ⚙️ 环境变量配置
 
 为了安全起见，脚本通过读取系统环境变量来获取 API 密钥，避免明文硬编码。请将你的密钥配置为以下两个环境变量：
-- `IPINFO_AUTH`: 你的 ipinfo.io Token (例如：`Bearer 你的Token`，或仅填写 Token，具体视你在代码中的配置而定)。
 - `DASHSCOPE_API_KEY`: 你的阿里云 DashScope API Key。
 
 ### Windows 配置方法：
 1. 按下 `Win + R` 键，输入 `sysdm.cpl` 打开“系统属性”。
 2. 切换到“高级”选项卡，点击“环境变量”。
-3. 在“用户变量”中点击“新建”，分别创建 `IPINFO_AUTH` 和 `DASHSCOPE_API_KEY`。
+3. 在“用户变量”中点击“新建”，创建 `DASHSCOPE_API_KEY`。
 4. **注意**：配置完成后，必须关闭并重新打开 PowerShell 窗口才能生效。
 
 ### macOS / Linux 配置方法：
@@ -46,7 +45,6 @@ Linux 和 macOS 脚本依赖 `jq` 工具来解析 API 返回的数据。请在�
    ```
 3. 在文件末尾添加以下两行（替换为你真实的 Key）：
    ```bash
-   export IPINFO_AUTH="你的ipinfo_token"
    export DASHSCOPE_API_KEY="你的dashscope_key"
    ```
 4. 保存退出后，执行以下命令使其立即生效：

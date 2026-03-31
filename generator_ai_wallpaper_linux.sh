@@ -26,10 +26,9 @@ fi
 # ==========================================
 echo -e "\033[36m1. 正在定位...\033[0m"
 
-if [ -z "$IPINFO_AUTH" ]; then show_env_help "IPINFO_AUTH" "ipinfo.io"; fi
 if [ -z "$DASHSCOPE_API_KEY" ]; then show_env_help "DASHSCOPE_API_KEY" "阿里云 DashScope"; fi
 
-locationData=$(curl -s -H "Authorization: $IPINFO_AUTH" "https://ipinfo.io/json")
+locationData=$(curl -s "https://ipinfo.io/json")
 loc=$(echo "$locationData" | jq -r '.loc // empty')
 city=$(echo "$locationData" | jq -r '.city // empty')
 
