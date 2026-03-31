@@ -16,8 +16,7 @@
 ## 🛠️ 准备工作 (Prerequisites)
 
 ### 1. 获取免费 API 密钥 (全平台必须)
-在运行此脚本之前，你需要准备以下两个免费的 API 密钥：
-- **IPInfo Token**: 用于精准获取 IP 地理位置。注册并登录 [ipinfo.io](https://ipinfo.io/) 获取 Access Token。
+在运行此脚本之前，你需要准备一个免费的 API 密钥：
 - **DashScope API Key**: 用于调用阿里云 AI 绘画大模型。注册并登录 [阿里云百炼控制台](https://bailian.console.aliyun.com/) 开通 DashScope 服务并获取 API Key。
 
 ### 2. 安装命令行 JSON 解析工具 (仅 Linux/macOS 需要)
