@@ -96,7 +96,7 @@ try {
 Write-Host "3. Requesting AI generation... / 正在请求 AI 生成壁纸..." -ForegroundColor Cyan
 
 # English prompt for better international compatibility / 改用英文提示词以利于海外用户理解和修改
-$imagePromptText = "Current weather: $weatherDesc, temperature: ${temp}°C. A masterpiece cinematic portrait wallpaper. Center: a beautiful East Asian girl facing the camera, sweet smile. Features: delicate facial features, big eyes, fair skin, pure and cute, exquisite makeup, detailed hair. Clothing: fashionable outfit matching the current weather and temperature. Half-body shot, wearing a skirt, close-up. Background: aesthetic natural or urban scenery reflecting the current weather, depth of field effect, 8k resolution."
+$imagePromptText = "Create an 8k cinematic portrait wallpaper inspired by $weatherDesc weather. A beautiful East Asian teenage girl faces the camera with a sweet smile, delicate facial features, big eyes, fair skin, elegant natural makeup, and neatly tied-up hair in a youthful ponytail or twin tails, with no loose long hair covering the shoulders. Half-body close-up, wearing a stylish outfit that naturally matches the atmosphere. The background should be aesthetic natural or urban scenery with lighting, colors, and mood consistent with $weatherDesc conditions, with depth of field and a clean premium composition. Absolutely no words, letters, numbers, subtitles, captions, logos, signs, watermarks, UI elements, or any readable text anywhere in the image."
 
 $imageDataJson = @{
     model = "z-image-turbo"
@@ -107,7 +107,7 @@ $imageDataJson = @{
         })
     }
     parameters = @{
-        negative_prompt = "text, low resolution, blurry, deformed, ugly, oversaturated, watermark"
+        negative_prompt = "text, letters, words, numbers, digits, subtitles, captions, signatures, signage, logos, watermark, UI, interface, overlays, labels, temperature readout, date stamp, Chinese characters, English letters, low resolution, blurry, deformed, ugly, oversaturated"
         size = "1920*1080"
     }
 } | ConvertTo-Json -Depth 10
@@ -161,25 +161,99 @@ try {
 # Step 5: Autostart Setup / 第五步：设置开机启动提示
 # ==========================================
 Write-Host ""
+$taskName = "WeatherAIWallpaperOnLogon"
 $startupFolder = [Environment]::GetFolderPath('Startup')
-$shortcutPath = Join-Path $startupFolder "WeatherWallpaper.lnk"
+$legacyLauncherPath = Join-Path $startupFolder "WeatherWallpaperStartup.cmd"
+$legacyShortcutPath = Join-Path $startupFolder "WeatherWallpaper.lnk"
+$scriptPath = $MyInvocation.MyCommand.Path
 
-if (Test-Path $shortcutPath) {
-    Write-Host "ℹ️ Autostart already configured, skipping. / 检测到已配置开机启动，跳过设置。" -ForegroundColor Gray
+function Remove-LegacyWindowsAutostartArtifacts {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Paths
+    )
+
+    foreach ($path in $Paths) {
+        if ($path -and (Test-Path $path)) {
+            Remove-Item -LiteralPath $path -Force
+        }
+    }
+}
+
+function Test-WindowsStartupTask {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TaskName
+    )
+
+    if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
+        return ($null -ne (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue))
+    }
+
+    $null = & schtasks.exe /Query /TN $TaskName 2>&1
+    return ($LASTEXITCODE -eq 0)
+}
+
+function Set-WindowsStartupTask {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ScriptPath,
+        [Parameter(Mandatory = $true)]
+        [string]$TaskName,
+        [Parameter(Mandatory = $true)]
+        [string[]]$LegacyPaths
+    )
+
+    if (Get-Command -Name Register-ScheduledTask -ErrorAction SilentlyContinue) {
+        $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+        $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`""
+        $trigger = New-ScheduledTaskTrigger -AtLogOn -User $currentUser
+        $principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive -RunLevel Limited
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+
+        Register-ScheduledTask -TaskName $TaskName `
+                               -Description "Open PowerShell and run Weather AI Wallpaper at sign-in." `
+                               -Action $action `
+                               -Trigger $trigger `
+                               -Principal $principal `
+                               -Settings $settings `
+                               -Force | Out-Null
+    } else {
+        $taskCommand = "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`""
+        $null = & schtasks.exe /Create /TN $TaskName /SC ONLOGON /TR $taskCommand /IT /RL LIMITED /F 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "schtasks.exe returned exit code $LASTEXITCODE"
+        }
+    }
+
+    Remove-LegacyWindowsAutostartArtifacts -Paths $LegacyPaths
+}
+
+$legacyAutostartExists = (Test-Path $legacyLauncherPath) -or (Test-Path $legacyShortcutPath)
+
+if (Test-WindowsStartupTask -TaskName $taskName) {
+    Remove-LegacyWindowsAutostartArtifacts -Paths @($legacyLauncherPath, $legacyShortcutPath)
+    Write-Host "ℹ️ Autostart already configured via Task Scheduler, skipping. / 已通过计划任务配置开机启动，跳过设置。" -ForegroundColor Gray
+} elseif ($legacyAutostartExists) {
+    if (-not $scriptPath) {
+        Write-Host "⚠️ Legacy autostart detected, but the script path is unavailable. Please save the script as a .ps1 file and run it once manually to upgrade startup. / 检测到旧版开机启动配置，但当前脚本路径不可用。请先将脚本保存为 .ps1 文件后手动运行一次，以升级开机启动方式。" -ForegroundColor Yellow
+    } else {
+        try {
+            Set-WindowsStartupTask -ScriptPath $scriptPath -TaskName $taskName -LegacyPaths @($legacyLauncherPath, $legacyShortcutPath)
+            Write-Host "✅ Upgraded startup entry. Windows will now launch the script through Task Scheduler at sign-in and open a PowerShell window. / 已升级开机启动配置，Windows 登录后会通过计划任务启动并弹出 PowerShell 窗口执行脚本。" -ForegroundColor Green
+        } catch {
+            Write-Host "❌ Upgrade failed / 升级失败：$($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
 } else {
-    $answer = Read-Host "❓ Set to auto-run silently on startup? / 是否设置为开机自动后台运行？(Y/N)"
+    $answer = Read-Host "❓ Create a Task Scheduler auto-start item that opens PowerShell and runs this script when Windows starts? / 是否创建计划任务，在 Windows 登录后弹出 PowerShell 并执行此脚本？(Y/N)"
     if ($answer -match '^[Yy]') {
-        $scriptPath = $MyInvocation.MyCommand.Path
         if (-not $scriptPath) {
             Write-Host "⚠️ Please save the script as a .ps1 file first. / 请先保存脚本为 .ps1 文件再设置开机启动。" -ForegroundColor Yellow
         } else {
             try {
-                $WshShell = New-Object -ComObject WScript.Shell
-                $Shortcut = $WshShell.CreateShortcut($shortcutPath)
-                $Shortcut.TargetPath = "powershell.exe"
-                $Shortcut.Arguments = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`""
-                $Shortcut.Save()
-                Write-Host "✅ Added to startup queue. / 已加入开机启动队列。" -ForegroundColor Green
+                Set-WindowsStartupTask -ScriptPath $scriptPath -TaskName $taskName -LegacyPaths @($legacyLauncherPath, $legacyShortcutPath)
+                Write-Host "✅ Added to Task Scheduler. Windows will open a PowerShell window and run the script at sign-in. / 已加入计划任务，Windows 登录后会弹出 PowerShell 窗口并执行脚本。" -ForegroundColor Green
             } catch {
                 Write-Host "❌ Setup failed / 设置失败：$($_.Exception.Message)" -ForegroundColor Red
             }

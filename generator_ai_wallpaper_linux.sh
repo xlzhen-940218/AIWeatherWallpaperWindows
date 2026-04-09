@@ -86,7 +86,7 @@ echo -e "\033[33m🌡️ Temp / 气温：${temp}°C\033[0m"
 # ==========================================
 echo -e "\033[36m3. Requesting AI generation... / 正在请求 AI 生成...\033[0m"
 
-imagePromptText="Current weather: $weatherDesc, temperature: ${temp}°C. A masterpiece cinematic portrait wallpaper. Center: a beautiful East Asian girl facing the camera, sweet smile. Features: delicate facial features, big eyes, fair skin, pure and cute, exquisite makeup, detailed hair. Clothing: fashionable outfit matching the current weather and temperature. Half-body shot, wearing a skirt, close-up. Background: aesthetic natural or urban scenery reflecting the current weather, depth of field effect, 8k resolution."
+imagePromptText="Create an 8k cinematic portrait wallpaper inspired by $weatherDesc weather. A beautiful East Asian teenage girl faces the camera with a sweet smile, delicate facial features, big eyes, fair skin, elegant natural makeup, and neatly tied-up hair in a youthful ponytail or twin tails, with no loose long hair covering the shoulders. Half-body close-up, wearing a stylish outfit that naturally matches the atmosphere. The background should be aesthetic natural or urban scenery with lighting, colors, and mood consistent with $weatherDesc conditions, with depth of field and a clean premium composition. Absolutely no words, letters, numbers, subtitles, captions, logos, signs, watermarks, UI elements, or any readable text anywhere in the image."
 
 JSON_PAYLOAD=$(cat <<EOF
 {
@@ -95,7 +95,7 @@ JSON_PAYLOAD=$(cat <<EOF
     "messages": [{"role": "user", "content": [{"text": "$imagePromptText"}]}]
   },
   "parameters": {
-    "negative_prompt": "text, low resolution, blurry, deformed, ugly, oversaturated, watermark",
+    "negative_prompt": "text, letters, words, numbers, digits, subtitles, captions, signatures, signage, logos, watermark, UI, interface, overlays, labels, temperature readout, date stamp, Chinese characters, English letters, low resolution, blurry, deformed, ugly, oversaturated",
     "size": "1920*1080"
   }
 }

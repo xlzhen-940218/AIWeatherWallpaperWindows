@@ -17,7 +17,7 @@ This is a cross-platform automation script natively supporting **Windows, macOS,
   - **Windows:** Seamlessly applies the wallpaper using low-level API (`user32.dll`).
   - **macOS:** Replaces the wallpaper across all screens using native AppleScript (`osascript`).
   - **Linux:** Perfectly adapted for GNOME desktop environments using `gsettings`.
-- **🚀 Auto-Start on Boot:** Built-in interactive wizard to easily set up the script for silent background execution on startup (Supports Windows Startup folder, macOS LaunchAgents, Linux Autostart).
+- **🚀 Auto-Start on Boot:** Built-in interactive wizard to set up startup behavior. On Windows, it creates a Task Scheduler item that opens PowerShell and runs the script at sign-in; macOS and Linux keep using native background startup entries.
 
 ### 🛠️ Prerequisites
 #### 1. Get a Free API Key (Required for all platforms)
@@ -49,7 +49,7 @@ For security, the script reads your API key from environment variables to avoid 
 **Windows (`generator_ai_wallpaper.ps1`)**
 1. Right-click the `.ps1` file.
 2. Select **"Run with PowerShell"**.
-3. Follow the console prompts to optionally set up auto-start.
+3. Follow the console prompts to optionally create a Windows Task Scheduler auto-start item, which opens PowerShell and runs the script when you sign in.
 
 **macOS & Linux (`.sh` files)**
 1. Open Terminal and navigate to the script directory.
@@ -71,7 +71,7 @@ For security, the script reads your API key from environment variables to avoid 
   - **Windows**: 调用底层 API (`user32.dll`) 无缝替换。
   - **macOS**: 使用原生 AppleScript (`osascript`) 全屏幕替换。
   - **Linux**: 使用 `gsettings` 完美适配 GNOME 桌面环境。
-- **🚀 开机自启**：内置交互式引导，支持一键将脚本配置为开机静默后台运行。
+- **🚀 开机自启**：内置交互式引导。Windows 会创建计划任务，在登录后弹出 PowerShell 并执行脚本；macOS 和 Linux 继续使用系统原生的后台自启方式。
 
 ### 🛠️ 准备工作
 #### 1. 获取免费 API 密钥 (全平台必须)
@@ -94,7 +94,7 @@ For security, the script reads your API key from environment variables to avoid 
 在终端编辑配置文件（`~/.zshrc` 或 `~/.bashrc`），添加 `export DASHSCOPE_API_KEY="你的密钥"`，然后执行 `source ~/.zshrc` 使其生效。
 
 ### 🚀 快速开始
-**Windows**：右键点击 `generator_ai_wallpaper.ps1`，选择 **“使用 PowerShell 运行”**。
+**Windows**：右键点击 `generator_ai_wallpaper.ps1`，选择 **“使用 PowerShell 运行”**，再按提示决定是否创建“登录后通过计划任务弹出 PowerShell 执行脚本”的自启项。
 **macOS/Linux**：在终端执行 `chmod +x` 赋予权限后，运行对应的 `.sh` 脚本即可。
 
 ---
